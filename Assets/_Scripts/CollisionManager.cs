@@ -28,6 +28,7 @@ public class CollisionManager : MonoBehaviour
     void Update()
     {
         spheres = FindObjectsOfType<BulletBehaviour>();
+        cubes = FindObjectsOfType<CubeBehaviour>();
 
         // check each AABB with every other AABB in the scene
         for (int i = 0; i < cubes.Length; i++)
@@ -42,17 +43,17 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Check each sphere against each AABB in the scene
-        foreach (var sphere in spheres)
-        {
-            foreach (var cube in cubes)
-            {
-                if (cube.name != "Player")
-                {
-                    CheckSphereAABB(sphere, cube);
-                }
+        //foreach (var sphere in spheres)
+        //{
+        //    foreach (var cube in cubes)
+        //    {
+        //        if (cube.name != "Player")
+        //        {
+        //            CheckSphereAABB(sphere, cube);
+        //        }
                 
-            }
-        }
+        //    }
+        //}
 
 
     }
@@ -121,6 +122,21 @@ public class CollisionManager : MonoBehaviour
         }
     }
 
+    private static void Reflect(CubeBehaviour s)
+    {
+        if ((s.collisionNormal == Vector3.forward) || (s.collisionNormal == Vector3.back))
+        {
+            s.direction = new Vector3(s.direction.x, s.direction.y, -s.direction.z);
+        }
+        else if ((s.collisionNormal == Vector3.right) || (s.collisionNormal == Vector3.left))
+        {
+            s.direction = new Vector3(-s.direction.x, s.direction.y, s.direction.z);
+        }
+        else if ((s.collisionNormal == Vector3.up) || (s.collisionNormal == Vector3.down))
+        {
+            s.direction = new Vector3(s.direction.x, -s.direction.y, s.direction.z);
+        }
+    }
 
     public static void CheckAABBs(CubeBehaviour a, CubeBehaviour b)
     {
@@ -157,7 +173,13 @@ public class CollisionManager : MonoBehaviour
             // set the contact properties
             contactB.face = face;
             contactB.penetration = penetration;
+            b.collisionNormal = face;
 
+            if (b.type == CubeBehaviour.CubeType.Bullet)
+            {
+                //Debug.Log("shi zi dan");
+                Reflect(b);
+            }
 
             // check if contact does not exist
             if (!a.contacts.Contains(contactB))
@@ -184,12 +206,12 @@ public class CollisionManager : MonoBehaviour
                 
             }
 
-            if (a.type == CubeBehaviour.CubeType.Player && b.type==CubeBehaviour.CubeType.Block
-                && face!=faces[2] && face!=faces[3])
-            {
-                Debug.Log("push"+face);
-                a.PushCube(b);
-            }
+            //if (a.type == CubeBehaviour.CubeType.Player && b.type == CubeBehaviour.CubeType.Block
+            //    && face != faces[2] && face != faces[3])
+            //{
+            //    Debug.Log("push" + face);
+            //    a.PushCube(b);
+            //}
         }
         else
         {

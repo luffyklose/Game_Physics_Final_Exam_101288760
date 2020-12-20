@@ -28,7 +28,7 @@ public class RigidBody3D : MonoBehaviour
     void Start()
     {
         timer = 0.0f;
-        gravity = -0.001f;
+        gravity = -0.05f;
         velocity = Vector3.zero;
         acceleration = new Vector3(0.0f, gravity * gravityScale, 0.0f);
         if (bodyType == BodyType.DYNAMIC)

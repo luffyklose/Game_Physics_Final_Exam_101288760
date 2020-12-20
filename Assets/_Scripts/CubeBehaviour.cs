@@ -73,6 +73,13 @@ public class CubeBehaviour : MonoBehaviour
     public float PushSpeed;
     public CubeType type = CubeType.Unknown;
 
+    public Vector3 collisionNormal;
+    public Vector3 direction;
+    public float speed;
+    public float range;
+
+    public BulletManager bulletManager;
+
     private MeshFilter meshFilter;
     public Bounds bounds;
     public bool isGrounded;
@@ -87,15 +94,46 @@ public class CubeBehaviour : MonoBehaviour
         bounds = meshFilter.mesh.bounds;
         size = bounds.size;
 
-        PushSpeed = 0.1f;
+        PushSpeed = 0.5f;
+
+        if (type == CubeType.Bullet)
+        {
+            isColliding = false;
+            bulletManager = FindObjectOfType<BulletManager>();
+        }
+            
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (type == CubeType.Bullet)
+        {
+            _Move();
+            _CheckBounds();
+        }
+
+        for (int i = 0; i < contacts.Count; i++)
+        {
+            if (type == CubeType.Bullet || contacts[i].cube.type==CubeType.Bullet)
+                break;
+            if (GetComponent<RigidBody3D>().bodyType == BodyType.DYNAMIC)
+            {
+                if (contacts[i].cube.gameObject.GetComponent<RigidBody3D>().bodyType == BodyType.DYNAMIC)
+                {
+                    Vector3 MoveDir = contacts[i].penetration * contacts[i].face;
+                    transform.position -= 0.015f * MoveDir;
+                    contacts[i].cube.transform.position += 0.1f * MoveDir;
+                }
+                else
+                {
+                    transform.position -= contacts[i].penetration * contacts[i].face;
+                }
+            }
+        }       
+
         max = Vector3.Scale(bounds.max, transform.localScale) + transform.position;
         min = Vector3.Scale(bounds.min, transform.localScale) + transform.position;
-
     }
 
     private void OnDrawGizmos()
@@ -118,5 +156,18 @@ public class CubeBehaviour : MonoBehaviour
 
         Debug.Log("move dir" + MoveDir + " Push Speed" + PushSpeed + " final vel: " + MoveDir * PushSpeed);
         Debug.Log("New Loc " + block.transform.position);
+    }
+
+    private void _Move()
+    {
+        transform.position += direction * speed * Time.deltaTime;
+    }
+
+    private void _CheckBounds()
+    {
+        if (Vector3.Distance(transform.position, Vector3.zero) > range)
+        {
+            bulletManager.ReturnBullet(this.gameObject);
+        }
     }
 }
